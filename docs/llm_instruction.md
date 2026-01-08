@@ -28,6 +28,7 @@ dependencies {
 Notes:
 - If the mod is updated, run `gradlew publish` in `minecraft_mcp_for_llm` again.
 - If your workspace path is different, adjust the `maven { url = ... }` to that path.
+- By default the mod auto-opens the most recently modified world; set `client.autoOpenLastWorld=false` to suppress.
 
 ## Run and Test Without Human Interaction
 
@@ -36,15 +37,30 @@ Notes:
 .\gradlew.bat runClient
 ```
 
+Note: running any Gradle task (including `runClient`) is blocking. If your Codex session needs to keep sending HTTP requests while Minecraft is running, launch it in the background:
+```powershell
+Start-Process -FilePath ".\\gradlew.bat" -ArgumentList "runClient" -WorkingDirectory (Get-Location)
+```
+
 2) Wait for MCP server:
 ```powershell
 Invoke-RestMethod http://127.0.0.1:25576/health
+```
+
+If you suspect startup failures, check for recent exceptions:
+```powershell
+Invoke-RestMethod http://127.0.0.1:25576/logs/check
 ```
 
 3) When `worldLoaded` is true, issue commands:
 ```powershell
 $body = @{ command = "/time query day" } | ConvertTo-Json
 Invoke-RestMethod -Uri http://127.0.0.1:25576/command -Method Post -ContentType "application/json" -Body $body
+```
+
+If `worldLoaded` stays false, request a world open:
+```powershell
+Invoke-RestMethod -Uri http://127.0.0.1:25576/world/open -Method Post -ContentType "application/json" -Body "{}"
 ```
 
 4) Optional: teleport player
@@ -74,6 +90,8 @@ Include:
 - MCP response JSON.
 - Game state (world loaded, player present, singleplayer/multiplayer).
 - Expected vs actual behavior.
+
+Also append your findings to `docs/llm_responses.md` in this repo so they are tracked alongside the MCP mod.
 
 ## Config (optional)
 Edit `run/config/mcp_for_llm-common.toml`:

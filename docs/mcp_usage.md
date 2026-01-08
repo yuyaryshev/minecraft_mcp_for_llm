@@ -14,7 +14,14 @@ Returns server status and whether a world is loaded.
 
 Example response:
 ```json
-{ "status": "ok", "worldLoaded": true }
+{
+  "status": "ok",
+  "worldLoaded": true,
+  "serverRunning": true,
+  "screen": "none",
+  "levelName": "minecraft:overworld",
+  "newErrors": 0
+}
 ```
 
 ### POST /command
@@ -34,6 +41,14 @@ Example response:
 }
 ```
 
+### POST /world/open
+Request loading a world by id or use last modified save if omitted.
+
+Request body:
+```json
+{ "worldId": "MyWorld" }
+```
+
 ### POST /player/teleport
 Teleport the local player to coordinates (yaw/pitch optional).
 
@@ -50,6 +65,19 @@ Request body:
 {}
 ```
 
+### GET /logs/check
+Returns new log error lines since the last check (useful for catching startup exceptions).
+
+Example response:
+```json
+{
+  "success": true,
+  "newErrors": 1,
+  "recentErrors": ["...Exception..."]
+}
+```
+
 ## Notes
 - The command executor uses the first connected player, so open a singleplayer world first.
+- To suppress auto-world loading on startup, set `client.autoOpenLastWorld=false` in `mcp_for_llm-common.toml`.
 - To disable the server or close endpoint, edit `mcp_for_llm-common.toml`.
